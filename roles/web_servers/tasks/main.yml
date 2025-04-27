@@ -1,0 +1,51 @@
+- name: install apache and php for Centos servers
+  tags: apache_centos
+  dnf:
+    name:
+      - httpd
+      - php
+    state: latest
+  when: ansible_distribution == "CentOS"
+
+- name: start httpd on Centos
+  tags: start_apache_centos
+  service:
+    name: httpd
+    state:  started
+    enabled:  yes
+  when: ansible_distribution == "CentOS"
+
+- name: change mail for admin
+  tags: change_mail_centos
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^ServerAdmin'
+    line: ServerAdmin somebody@somewhere.net
+  when: ansible_distribution == "CentOS"
+  register: httpd
+
+- name: restart httpd centos
+  tags: restart_apache_centos
+  service:
+    name: httpd
+    state:  restarted
+  when: httpd.changed
+
+- name: install apache and php for Ubuntu servers
+  tags: apache_ubuntu
+  apt:
+    name:
+      - apache2
+      - libapache2-mod-php
+    state: latest
+  when: ansible_distribution == "Ubuntu"
+
+- name: Copy default html file for site
+  tags: html
+  copy:
+    src:  /root/anisble/roles/web_servers/files/default_site.html
+    dest: /var/www/html/index.html
+    owner:  root
+    group:  root
+    mode: 0644
+
